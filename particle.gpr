@@ -1,0 +1,78 @@
+project Particle is
+
+   type Particle_Build_Mode_Type is
+      ("debug", "fast", "small");
+   Particle_Build_Mode: Particle_Build_Mode_Type := external ("Build_Mode", "debug");
+
+   Binder_Options := ();
+
+   Style_Options  := ("-gnaty");
+                      --  "-gnatyaknpr",  --  Check all casings: a:attribute, k:keywords, n:package Standard identifiers, p:pragma, r:identifier references.
+                      --  "-gnatybfhiu",  --  Check b:no blanks at end of lines, f:no ff/vtabs, h: no htabs, i:if-then layout, u:no unnecessary blank lines.
+                      --  "-gnatyO",      --  Check that overriding subprograms are explicitly marked as such.
+                      --  "-gnatye",      --  Check that labels on end statements (ending subprograms), and on exit statements (exiting named loops), are present.
+                      --  "-gnatyx");     --  Check x:no extra parens.
+
+   Compiler_Options :=   ("-gnat12",
+                          "-gnatwa",
+			  "-gnatwe",
+                          "-fno-strict-aliasing")
+                        & Style_Options;
+
+   Fast_Options := ("-O3", 
+                    "-gnatn",
+                    "-gnatp",
+                    "-funroll-loops",
+                    "-fpeel-loops",
+                    "-ftracer",
+                    "-funswitch-loops",
+                    "-fweb",
+                    "-frename-registers"); 
+
+   Small_Options := ("-Os",
+                     "-gnatp",
+                     "-fno-inline",
+                     -- "-march=i386",
+                     "-ffunction-sections",
+                     "-falign-jumps=0",
+                     "-falign-loops=0",
+                     "-falign-functions=0",
+                     "-mpreferred-stack-boundary=2");
+
+   case Particle_Build_Mode 
+   is
+      when "fast"  => Compiler_Options := Compiler_Options & Fast_Options 
+                                                           & "-fomit-frame-pointer";
+
+      when "debug" => null;
+         Binder_Options   := Binder_Options   & "-E";
+         Compiler_Options := Compiler_Options & "-gnato"
+                                              & "-fstack-check"
+                                              & "-g"
+					      & "-gnatVa";
+      when "small" =>
+         Compiler_Options := Compiler_Options & Small_Options 
+                                              & "-fdata-sections";
+   end case;
+
+   Binder_Options   := Binder_Options   & "-static";
+
+   for Source_Dirs use ("src/**");
+   for Main use ("main.adb");
+
+   for Object_Dir use "obj";
+
+   package Builder is
+       for Default_Switches ("ada") use ("-C", "-j4");
+   end Builder;
+
+   package Compiler is
+      for Driver ("ada") use "/usr/bin/gcc";
+      for Default_Switches ("ada") use Compiler_Options;
+   end Compiler;
+
+   package Binder is
+      for Default_Switches ("ada") use Binder_Options;
+   end Binder;
+
+end Particle;
