@@ -48,7 +48,7 @@ int main(int argc, char* argv[]){
 		py[i] = (double)((i / Width) % Height);
 		pz[i] = (double)((i / Width / Height) % Depth);
 	}
-	
+
 	for (r = 0; r < UPDATES; r++) {
 		for (i=0; i < particle_per_proc; i++){
 			px[i] = update_position(px[i], vx[i], ax[i]);
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]){
 			vz[i] = update_velocity(vz[i], az[i]);
 
 		}
-		
+
 		MPI_Allgather(px, particle_per_proc, MPI_DOUBLE,
 				global_px, particle_per_proc,
 				MPI_DOUBLE, MPI_COMM_WORLD);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	MPI_Gather(px, particle_per_proc, MPI_DOUBLE, global_px, 
+	MPI_Gather(px, particle_per_proc, MPI_DOUBLE, global_px,
 			particle_per_proc, MPI_DOUBLE, 0,
 			MPI_COMM_WORLD);
 
